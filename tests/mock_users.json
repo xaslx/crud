@@ -1,0 +1,15 @@
+[
+    {
+        "username": "dasha",
+        "email": "dasha@example.com",
+        "date_of_birthday": "2024-04-03",
+        "hashed_password": "$2b$12$TDD6cc9s.lYhS.HS7IeXMusd3H86H0PoLeNH.DipcCT8kj0zL64Yq"
+    },
+
+    {
+        "username": "maks4on",
+        "email": "knyazev@gmail.com",
+        "date_of_birthday": "2024-04-03",
+        "hashed_password": "$2b$12$TDD6cc9s.lYhS.HS7IeXMusd3H86H0PoLeNH.DipcCT8kj0zL64Yq"
+    }
+]
