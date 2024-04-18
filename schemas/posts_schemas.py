@@ -49,11 +49,3 @@ class PostsIn(BaseModel):
     title: str = Field(min_length=5, max_length=25)
     content: str = Field(min_length=10, max_length=500)
     model_config = ConfigDict(from_attributes=True)
-
-
-class PostsIn2(BaseModel):
-    post_id: int
-    title: str = Field(min_length=5, max_length=25)
-    content: str = Field(min_length=10, max_length=500)
-
-    model_config = ConfigDict(from_attributes=True)

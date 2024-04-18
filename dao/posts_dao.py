@@ -1,4 +1,5 @@
 from sqlalchemy import and_, join, select, update
+from sqlalchemy.orm import selectinload, joinedload
 
 from database.database import async_session_maker
 from models.post_models import Post
@@ -22,28 +23,12 @@ class PostDAO(BaseDAO):
             return result.mappings().one_or_none()
 
     @classmethod
-    async def find_all(cls, **filter_by):
-        async with async_session_maker() as session:
-            query = (
-                select(cls.model.__table__.columns)
-                .filter_by(**filter_by)
-                .order_by(
-                    cls.model.__table__.columns.date_of_publication.desc()
-                )
-            )
-            result = await session.execute(query)
-            return result.mappings().all()
-
-    @classmethod
     async def find_all_join(cls, category: str | None = None, **filter_by):
         async with async_session_maker() as session:
             query = (
                 select(cls.model.__table__.columns, User.username)
                 .filter_by(**filter_by)
                 .join(User, cls.model.user_id == User.id)
-                .order_by(
-                    cls.model.__table__.columns.date_of_publication.desc()
-                )
             )
             if not category:
                 pass

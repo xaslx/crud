@@ -41,13 +41,17 @@ class UserAlreadyBan(BaseException):
     status_code = status.HTTP_409_CONFLICT
     detail = 'Пользователь уже заблокирован'
 
+class UnverifiedUser(BaseException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = 'Вы не верифицированный пользователь'
+
+class FileTooLarge(BaseException):
+    status_code = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    detail = 'Файл не должен привышать 5мб.'
+
 class NotAccess(BaseException):
     status_code = status.HTTP_409_CONFLICT
     detail = 'Не достаточно прав'
-
-class WrongDate(BaseException):
-    status_code = status.HTTP_409_CONFLICT
-    detail = 'Дата не должна быть больше текущей и меньше 1900 года.'
 
 
 # JWT token
@@ -68,6 +72,10 @@ class PostNotFound(BaseException):
     status_code = status.HTTP_404_NOT_FOUND
     detail = 'Пост не найден'
 
+class NotAccess(BaseException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = 'Недостаточно прав'
+
 class PostNotDeleted(BaseException):
     status_code = status.HTTP_404_NOT_FOUND
     detail = 'Этот пост не принадлежит вам, вы не можете его удалить'
@@ -75,3 +83,11 @@ class PostNotDeleted(BaseException):
 class PostYetExisting(BaseException):
     status_code = status.HTTP_406_NOT_ACCEPTABLE
     detail = 'Невозможно удалить пользователя так как у него есть посты'
+
+class IncorrectLink(BaseException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = 'Не действительная ссылка или время истекло'
+
+class IncorrectExtension(BaseException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = 'Неверное расширение файла'

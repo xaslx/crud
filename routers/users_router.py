@@ -9,8 +9,15 @@ from exceptions import (
     UserAlreadyBan,
     UserAlreadyUnBan,
     UserNotFound,
+    IncorrectExtension,
+    UnverifiedUser,
+    FileTooLarge
 )
-from schemas.users_schemas import User
+from schemas.users_schemas import User, UserAfterRegister
+import secrets
+
+from tasks.tasks import save_image
+
 
 template = Jinja2Templates("templates")
 
@@ -75,24 +82,30 @@ async def update_role_user(
     return await UsersDAO.update_user(user_id=user.id, role=new_role)
 
 
-@router.patch("/user_photo")
-async def update_photo_profile(
-    file: UploadFile = File(), user: User = Depends(get_current_user)
+@router.post("/uplod_file")
+async def create_upload_file(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
 ):
-    allowed = ["png", "jpg", "webp"]
-    file_name = file.filename.split(".")
-    if file_name[-1] not in allowed:
-        return {"error": "Разрешенные расширения: [png, jpg, webp]"}
+    
+    filename = file.filename
+    extension = filename.split(".")[-1]
+    if extension not in ["png", "jpg", "webp"]:
+        raise IncorrectExtension
+    if not user.is_verified:
+        raise UnverifiedUser
     if file.size > 5242880:
-        return {"error": "Размер фото не должен превышать 5мб"}
-    else:
-        async with aiofiles.open(
-            f"static/user_photo/{user.id}.webp", "wb+"
-        ) as f:
-            await f.write(await file.read())
-            await UsersDAO.update_user(
-                user.id, image_url=f"/static/user_photo/{user.id}"
-            )
+        raise FileTooLarge
+
+    FILEPATH = "./static/user_photo/"
+    token_name = secrets.token_hex(10) + "." + extension
+    generated_name = FILEPATH + token_name
+
+    file_content = await file.read()
+    async with aiofiles.open(generated_name, "wb") as file:
+        await file.write(file_content)
+    save_image.delay(generated_name)
+    return await UsersDAO.update_user(user_id=user.id, image_url=token_name)
 
 
 async def check_user(user, user_admin):
@@ -103,7 +116,7 @@ async def check_user(user, user_admin):
     return True
 
 
-@router.patch("/ban")
+@router.put("/ban")
 async def ban_user(username: str, user_admin: User = Depends(get_admin_user)):
     user = await UsersDAO.find_one_or_none(username=username)
     if await check_user(user, user_admin):
@@ -112,7 +125,7 @@ async def ban_user(username: str, user_admin: User = Depends(get_admin_user)):
         return UserAlreadyBan
 
 
-@router.patch("/unban")
+@router.put("/unban")
 async def unban_user(
     username: str, user_admin: User = Depends(get_admin_user)
 ):

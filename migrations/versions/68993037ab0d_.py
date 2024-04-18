@@ -1,18 +1,19 @@
 """empty message
 
-Revision ID: 1a7614c10540
-Revises: 4e84f25f9ac4
-Create Date: 2024-04-03 18:10:23.288267
+Revision ID: 68993037ab0d
+Revises: 984a55a29894
+Create Date: 2024-04-17 19:19:16.748718
 
 """
 from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
-revision: str = '1a7614c10540'
-down_revision: Union[str, None] = '4e84f25f9ac4'
+revision: str = '68993037ab0d'
+down_revision: Union[str, None] = '984a55a29894'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

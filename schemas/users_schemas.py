@@ -9,7 +9,6 @@ from pydantic import (
     field_validator,
 )
 
-from exceptions import WrongDate
 
 USERNAME_CHECK = re.compile(r"^[a-zA-Z0-9_]{4,15}$")
 
@@ -20,11 +19,11 @@ class User(BaseModel):
     id: int
     username: str
     email: EmailStr
-    date_of_birthday: date
     registered_at: datetime
     role: str
     image_url: str
     is_banned: bool
+    is_verified: bool
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -33,7 +32,6 @@ class UserAfterRegister(BaseModel):
     id: int
     username: str
     email: EmailStr
-    date_of_birthday: date
     registered_at: datetime
     role: str
 
@@ -43,7 +41,6 @@ class UserAfterRegister(BaseModel):
 class UserRegister(BaseModel):
     username: str
     email: EmailStr
-    date_of_birthday: date
     password: str
 
     model_config = ConfigDict(from_attributes=True)
@@ -56,15 +53,6 @@ class UserRegister(BaseModel):
                 detail=f"Имя пользователя должно содержать только [англ.букв, цифры 0-9, знак _], быть минимум 4 символа "
                 f"и не должно привышать 15 символов",
             )
-        return value
-
-    @field_validator("date_of_birthday")
-    def date_of_birthday_validation(cls, value):
-        today = date.today()
-        if value > today:
-            raise WrongDate
-        elif value.year < 1900:
-            raise WrongDate
         return value
 
     @field_validator("password")

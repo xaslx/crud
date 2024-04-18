@@ -1,20 +1,25 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Request, Depends
+from fastapi.responses import JSONResponse
 
 from auth.auth import authenticate_user, create_access_token, get_password_hash
+from auth.authentication import generate_token, verify_token
+from auth.dependencies import get_current_user
 from dao.users_dao import UsersDAO
 from exceptions import UserAlreadyExistsException, UserNotFound
 from schemas.users_schemas import UserAfterRegister, UserLogin, UserRegister
 from tasks.tasks import send_user_confirmation_message
+from models.user_models import User
+from fastapi.templating import Jinja2Templates
 
+
+templates = Jinja2Templates('static/templates')
 router = APIRouter(prefix="/auth", tags=["Аутентификация и Авторизация"])
 
 
 @router.post("/register")
-async def register_user(user: UserRegister) -> UserAfterRegister:
+async def register_user(user: UserRegister):
     existing_user_email = await UsersDAO.find_one_or_none(email=user.email)
-    existing_user_username = await UsersDAO.find_one_or_none(
-        username=user.username
-    )
+    existing_user_username = await UsersDAO.find_one_or_none(username=user.username)
 
     if existing_user_username or existing_user_email:
         raise UserAlreadyExistsException
@@ -22,23 +27,45 @@ async def register_user(user: UserRegister) -> UserAfterRegister:
     user = await UsersDAO.add(
         username=user.username,
         email=user.email,
-        date_of_birthday=user.date_of_birthday,
         hashed_password=hashed_password,
     )
-    send_user_confirmation_message.delay(user.username, user.email)
-    return user
+    if user:
+        token = await generate_token(user)
+        send_user_confirmation_message.delay(user.username, user.email, token)
+        return JSONResponse(content={'msg': 'Вы успешно зарегестрировались, \
+                                    письмо для верификации отправлено вам на почту'})
+    return JSONResponse(content={'msg': 'Не удалось зарегистрироваться'})
 
 
 @router.post("/login")
 async def login_user(response: Response, user_data: UserLogin):
     user = await authenticate_user(user_data.username, user_data.password)
-
     if not user:
         raise UserNotFound
     access_token = create_access_token({"sub": str(user.id)})
     response.set_cookie("user_access_token", access_token, httponly=True)
     return access_token
 
+@router.post("/send_confirm_email")
+async def send_email_confirm(user: User = Depends(get_current_user)):
+    token = await generate_token(user)
+    send_user_confirmation_message.delay(user.username, user.email, token)
+    return JSONResponse(
+        content={
+            "msg": "Письмо для верификации аккаунта, отправлено на вашу почту"
+        }
+    )
+
+@router.get("/verification")
+async def email_verification(request: Request, token: str):
+    user: User = await verify_token(token)
+    if not user.is_verified:
+        await UsersDAO.update_user(user_id=user.id, is_verified=True)
+        return templates.TemplateResponse(
+            "verification.html",
+            {"request": request, "username": user.username},
+        )
+    return templates.TemplateResponse("redirect.html", {"request": request})
 
 @router.post("/logout")
 async def logout_user(response: Response):

@@ -10,7 +10,7 @@ from fastapi_pagination import add_pagination
 from fastapi_pagination.utils import disable_installed_extensions_check
 from redis import asyncio as aioredis
 from sqladmin import Admin
-
+from middleware.middleware import RateLimitingMiddleware
 from admin.admin import authentication_backend
 from admin.models_admin import PostAdmin, UserAdmin
 from config.config import settings
@@ -47,7 +47,9 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory="static"), "static")
+
 add_pagination(app)
+
 admin = Admin(
     app,
     engine,
@@ -55,6 +57,7 @@ admin = Admin(
     templates_dir="temp",
 )
 
+app.add_middleware(RateLimitingMiddleware)
 
 admin.add_view(UserAdmin)
 admin.add_view(PostAdmin)
