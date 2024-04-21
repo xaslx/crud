@@ -1,6 +1,6 @@
 from fastapi.responses import JSONResponse
 from sqlalchemy import delete, insert, select
-
+from sqlalchemy.exc import SQLAlchemyError
 from database.database import async_session_maker
 
 
@@ -23,24 +23,23 @@ class BaseDAO:
 
     @classmethod
     async def add(cls, **data):
-        async with async_session_maker() as session:
+        # async with async_session_maker() as session:
+        #     query = insert(cls.model).values(**data).returning(cls.model)
+        #     result = await session.execute(query)
+        #     await session.commit()
+        #     return result.scalar()
+        try:
             query = insert(cls.model).values(**data).returning(cls.model)
-            result = await session.execute(query)
-            await session.commit()
-            return result.scalar()
-        # try:
-        #     query = insert(cls.model).values(**data).returning(cls.model.id)
-        #     print(query)
-        #     async with async_session_maker() as session:
-        #         result = await session.execute(query)
-        #         await session.commit()
-        #         return result.mappings().first()
-        # except (SQLAlchemyError, Exception) as e:
-        #     if isinstance(e, SQLAlchemyError):
-        #         msg = "Database Exc: Cannot insert data into table"
-        #     elif isinstance(e, Exception):
-        #         msg = "Unknown Exc: Cannot insert data into table"
-        #     return None
+            async with async_session_maker() as session:
+                result = await session.execute(query)
+                await session.commit()
+                return result.scalar()
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Ошибка в бд: Не удалось добавить данные в бд"
+            elif isinstance(e, Exception):
+                msg = "Неизвестная ошибка: Не удалось добавить данные в бд"
+            return None
 
     @classmethod
     async def delete(cls, **filter_by):

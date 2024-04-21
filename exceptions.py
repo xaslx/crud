@@ -73,11 +73,11 @@ class PostNotFound(BaseException):
     detail = 'Пост не найден'
 
 class NotAccess(BaseException):
-    status_code = status.HTTP_409_CONFLICT
+    status_code = status.HTTP_403_FORBIDDEN
     detail = 'Недостаточно прав'
 
 class PostNotDeleted(BaseException):
-    status_code = status.HTTP_404_NOT_FOUND
+    status_code = status.HTTP_403_FORBIDDEN
     detail = 'Этот пост не принадлежит вам, вы не можете его удалить'
 
 class PostYetExisting(BaseException):

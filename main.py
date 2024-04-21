@@ -18,6 +18,8 @@ from database.database import engine
 from routers.auth_router import router as router_auth
 from routers.posts_router import router as router_posts
 from routers.users_router import router as router_users
+from routers.like_router import router as router_like
+
 
 sentry_sdk.init(
     dsn=settings.DSN,
@@ -66,6 +68,8 @@ admin.add_view(PostAdmin)
 app.include_router(router_users)
 app.include_router(router_posts)
 app.include_router(router_auth)
+app.include_router(router_like)
+
 
 origins = [
     "http://localhost:8000",

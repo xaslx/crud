@@ -15,7 +15,7 @@ USERNAME_CHECK = re.compile(r"^[a-zA-Z0-9_]{4,15}$")
 PASSWORD_CHECK = re.compile(r"^[a-zA-Z0-9_]{6,20}$")
 
 
-class User(BaseModel):
+class UserS(BaseModel):
     id: int
     username: str
     email: EmailStr

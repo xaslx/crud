@@ -7,6 +7,7 @@ from config.config import settings
 from database.database import Base
 from models.post_models import Post #noqa
 from models.user_models import User #noqa
+from models.like_models import Like #noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -4,21 +4,21 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "username, email, date_of_birthday, password, status_code",
+    "username, email, password, status_code",
     [
-        ("earth", "earth@gmail.com", "2025-05-06", "afeafaegae", 409),
-        (123456, "jkafagrr@gmail.com", "2023-01-01", "afeafaegae", 422),
-        ("123456", "jkafagrr@gmail.com", "2023-01-01", 1651651563, 422),
-        ("anton", "anton@gmail.com", "2099-01-01", "anton", 409),
-        ("melissa", "melissa@gmail.com", "1899-01-01", "melisaa", 409),
-        ("admin", "admin@mail.ru", "2023-01-01", "admins", 200),
-        ("admin", "admin@mail.ru", "2023-05-01", "admins", 409),
-        ("admin2", "admin@mail.ru", "2023-05-01", "admins", 409),
-        ("admin", "admin@mail.ruU", "2023-05-01", "admins", 409),
-        ("русский", "example@mail.ru", "2023-05-01", "admins", 422),
-        ("example", "example2@mail.ru", "2023-05-01", "русский", 422),
-        ("example$%2", "example3@mail.ru", "2023-05-01", "tesstt", 422),
-        ("example3", "example4@mail.ru", "2023-05-01", "%$#@&!test", 422),
+        ("earth", "earth@gmail.com", "afeafaegae", 409),
+        (123456, "jkafagrr@gmail.com", "afeafaegae", 422),
+        ("123456", "jkafagrr@gmail.com", 1651651563, 422),
+        ("anton", "anton@gmail.com", "anton", 409),
+        ("melissa", "melissa@gmail.com", "melisaa", 409),
+        ("admin", "admin@mail.ru", "admins", 200),
+        ("admin", "admin@mail.ru", "admins", 409),
+        ("admin2", "admin@mail.ru", "admins", 409),
+        ("admin", "admin@mail.ruU", "admins", 409),
+        ("русский", "example@mail.ru", "admins", 422),
+        ("example", "example2@mail.ru", "русский", 422),
+        ("example$%2", "example3@mail.ru", "tesstt", 422),
+        ("example3", "example4@mail.ru", "%$#@&!test", 422),
         (
             "exampleeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
             "example5@mail.ru",
@@ -36,14 +36,13 @@ from httpx import AsyncClient
     ],
 )
 async def test_register_user(
-    username, email, date_of_birthday, password, status_code, ac: AsyncClient
+    username, email, password, status_code, ac: AsyncClient
 ):
     response = await ac.post(
         "/auth/register",
         json={
             "username": username,
             "email": email,
-            "date_of_birthday": date_of_birthday,
             "password": password,
         },
     )

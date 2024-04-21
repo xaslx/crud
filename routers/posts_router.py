@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Annotated
-
+from random import choice
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
 from fastapi_cache.decorator import cache
 from fastapi_pagination import Page, paginate
-
 from auth.dependencies import get_admin_user, get_current_user
 from dao.posts_dao import PostDAO
 from dao.users_dao import UsersDAO
@@ -25,11 +25,17 @@ router = APIRouter(prefix="/posts", tags=["Посты"])
 
 @router.get("")
 @cache(expire=60)
-async def get_all_posts(
-    category: Annotated[Category, Query()] = None
-) -> Page[Posts]:
-    posts = await PostDAO.find_all_join(category=category)
+async def get_all_posts(category: Annotated[Category, Query()] = None) -> Page[Posts]:
+    posts = await PostDAO.find_all(category=category)
     return paginate(posts)
+
+
+
+@router.get('/search')
+async def search_post(text: Annotated[str, Query()] = None):
+    if not text:
+        return JSONResponse(content={'msg': 'Пустой запрос'})
+    return await PostDAO.search_post(text=text)
 
 
 @router.get("/users/{username}")
@@ -37,10 +43,9 @@ async def posts_by_username(
     username: str, category: Annotated[Category, Query()] = None
 ) -> Page[Posts]:
     user = await UsersDAO.find_one_or_none(username=username)
-    print(user)
     if not user:
         raise UserNotFound
-    posts = await PostDAO.find_all_join(user_id=user.id)
+    posts = await PostDAO.find_all(user_id=user.id, category=category)
     return paginate(posts)
 
 
@@ -48,7 +53,7 @@ async def posts_by_username(
 async def find_my_posts(
     user: User = Depends(get_current_user),
     category: Annotated[Category, Query()] = None,) -> Page[MyPosts]:
-    posts = await PostDAO.find_all(user_id=user.id)
+    posts = await PostDAO.find_all(user_id=user.id, category=category)
     return paginate(posts)
 
 
@@ -72,9 +77,8 @@ async def add_new_post(
         title=post.title,
         user_id=user.id,
         content=post.content,
-        category=category.value,
+        category=category
     )
-
 
 @router.delete("/{post_id}")
 async def delete_post(post_id: int, user: User = Depends(get_current_user)):
@@ -94,18 +98,15 @@ async def delete_post(post_id: int, user: User = Depends(get_admin_user)):
 @router.put("/{post_id}")
 async def update_post(post_id: int, post: PostsIn, user: User = Depends(get_current_user)):
     user_post = await PostDAO.find_one_or_none(id=post_id)
-    print(user_post)
     if not user_post:
         raise PostNotFound
     if user_post.user_id != user.id:
         raise NotAccess
     else:
-        new_title = post.title
-        new_content = post.content
         return await PostDAO.update_post(
             post_id=post_id,
             user_id=user.id,
-            title=new_title,
+            title=post.title,
             date_of_update=datetime.utcnow(),
-            content=new_content,
+            content=post.content,
         )

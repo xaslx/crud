@@ -1,7 +1,7 @@
 import aiofiles
 from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.templating import Jinja2Templates
-
+from auth.auth import get_password_hash
 from auth.dependencies import get_admin_user, get_current_user
 from dao.users_dao import UsersDAO
 from exceptions import (
@@ -13,9 +13,9 @@ from exceptions import (
     UnverifiedUser,
     FileTooLarge
 )
-from schemas.users_schemas import User, UserAfterRegister
+from schemas.users_schemas import UserS
 import secrets
-
+from models.user_models import User
 from tasks.tasks import save_image
 
 
@@ -26,28 +26,17 @@ router = APIRouter(prefix="/users", tags=["Пользователи"])
 
 
 @router.get("")
-async def get_users(user: User = Depends(get_admin_user)) -> list[User]:
+async def get_users(user: User = Depends(get_admin_user)) -> list[UserS]:
     return await UsersDAO.find_all()
 
 
 @router.get("/me")
-async def get_me(user: User = Depends(get_current_user)) -> User:
+async def get_me(user: User = Depends(get_current_user)) -> UserS:
     return await UsersDAO.find_one_or_none(id=user.id)
 
 
-# @router.delete('/{user_id}')
-# async def delete_user(user_id: int, user: User = Depends(get_admin_user)):
-#     user = await UsersDAO.find_one_or_none(id=user_id)
-#     if not user:
-#         raise UserNotFound
-#     posts = await PostDAO.find_one_or_none(user_id=user.id)
-#     if posts:
-#         raise PostYetExisting
-#     return await UsersDAO.delete(id=user_id)
-
-
 @router.get("/{username}")
-async def get_user_by_username(username: str) -> User:
+async def get_user_by_username(username: str) -> UserS:
     user = await UsersDAO.find_one_or_none(username=username)
     if not user:
         raise UserNotFound
@@ -61,14 +50,12 @@ async def update_user(
     new_password: str,
     user: User = Depends(get_current_user),
 ):
-    new_username = new_username
-    new_email = new_email
-    new_password = new_password
+    hashed_password = get_password_hash(new_password)
     return await UsersDAO.update_user(
         user.id,
         username=new_username,
         email=new_email,
-        hashed_password=new_password,
+        hashed_password=hashed_password,
     )
 
 
@@ -106,6 +93,7 @@ async def create_upload_file(
         await file.write(file_content)
     save_image.delay(generated_name)
     return await UsersDAO.update_user(user_id=user.id, image_url=token_name)
+    
 
 
 async def check_user(user, user_admin):
@@ -118,7 +106,7 @@ async def check_user(user, user_admin):
 
 @router.put("/ban")
 async def ban_user(username: str, user_admin: User = Depends(get_admin_user)):
-    user = await UsersDAO.find_one_or_none(username=username)
+    user: User = await UsersDAO.find_one_or_none(username=username)
     if await check_user(user, user_admin):
         if not user.is_banned:
             return await UsersDAO.update_user(user_id=user.id, is_banned=True)
@@ -129,8 +117,9 @@ async def ban_user(username: str, user_admin: User = Depends(get_admin_user)):
 async def unban_user(
     username: str, user_admin: User = Depends(get_admin_user)
 ):
-    user = await UsersDAO.find_one_or_none(username=username)
+    user: User = await UsersDAO.find_one_or_none(username=username)
     if await check_user(user, user_admin):
         if user.is_banned:
             return await UsersDAO.update_user(user_id=user.id, is_banned=False)
         raise UserAlreadyUnBan
+
