@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-
+import time
 import sentry_sdk
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
@@ -19,7 +19,7 @@ from routers.auth_router import router as router_auth
 from routers.posts_router import router as router_posts
 from routers.users_router import router as router_users
 from routers.like_router import router as router_like
-
+from logger import logger
 
 sentry_sdk.init(
     dsn=settings.DSN,
@@ -34,8 +34,7 @@ disable_installed_extensions_check()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis = aioredis.from_url(
-        f"redis://{settings.REDIS_HOST}", encoding="utf-8", decode_respone=True
-    )
+        f"redis://{settings.REDIS_HOST}", encoding="utf-8", decode_respone=True)
     FastAPICache.init(RedisBackend(redis), prefix="cache")
     print("Запущено")
     yield
@@ -47,6 +46,7 @@ app = FastAPI(
     lifespan=lifespan,
     swagger_ui_parameters={"operationsSorter": "method"},
 )
+
 
 app.mount("/static", StaticFiles(directory="static"), "static")
 
@@ -82,3 +82,13 @@ app.add_middleware(
     allow_methods=["GET", "POST", "DELETE", "PUT", "PUTCH"],
     allow_headers=["*"],
 )
+
+
+@app.middleware('http')
+async def add_proccess_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    proccess_time = time.time() - start_time
+    response.headers['X-Proccess-Time'] = str(proccess_time)
+    logger.info('Request execution time', extra={'proccess_time': round(proccess_time, 3)})
+    return response

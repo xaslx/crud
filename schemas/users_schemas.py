@@ -28,7 +28,7 @@ class UserS(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserAfterRegister(BaseModel):
+class UserOut(BaseModel):
     id: int
     username: str
     email: EmailStr

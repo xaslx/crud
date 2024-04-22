@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from .users_schemas import UserAfterRegister
+from .users_schemas import UserOut
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -38,12 +38,6 @@ class MyPosts(BaseModel):
     category: str
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class PostsUser(Posts):
-    username: str
-    model_config = ConfigDict(from_attributes=True)
-
 
 class PostsIn(BaseModel):
     title: str = Field(min_length=5, max_length=25)
