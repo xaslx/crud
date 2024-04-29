@@ -1,7 +1,7 @@
-from fastapi.responses import StreamingResponse, JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 from datetime import datetime, timedelta
 
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class RateLimitingMiddleware(BaseHTTPMiddleware):
@@ -15,7 +15,9 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         client_ip = request.client.host
 
-        request_count, last_request = self.request_counts.get(client_ip, (0, datetime.min))
+        request_count, last_request = self.request_counts.get(
+            client_ip, (0, datetime.min)
+        )
 
         elapsed_time = datetime.now() - last_request
 
@@ -25,7 +27,9 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
             if request_count >= self.RATE_LIMIT_REQUESTS:
                 return JSONResponse(
                     status_code=429,
-                    content={"msg": "Превышен лимит запросов, попробуйте позже!"}
+                    content={
+                        "msg": "Превышен лимит запросов, попробуйте позже!"
+                    },
                 )
             request_count += 1
 

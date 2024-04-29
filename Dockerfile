@@ -1,6 +1,8 @@
-FROM python
+FROM python:3.12
 
 WORKDIR /crud
+
+COPY .env .
 
 COPY requirements.txt .
 

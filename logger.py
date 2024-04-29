@@ -7,12 +7,14 @@ from config.config import settings
 
 logger = logging.getLogger()
 
+# logHandler = logging.FileHandler('logfile.log', encoding='UTF-8')
 logHandler = logging.StreamHandler()
-
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
-        super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
+        super(CustomJsonFormatter, self).add_fields(
+            log_record, record, message_dict
+        )
         if not log_record.get("timestamp"):
             now = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             log_record["timestamp"] = now
@@ -23,7 +25,8 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
 
 
 formatter = CustomJsonFormatter(
-    "%(timestamp)s %(level)s %(message)s %(module)s %(funcName)s"
+    "%(timestamp)s %(level)s %(message)s %(module)s %(funcName)s",
+    json_ensure_ascii=False,
 )
 
 logHandler.setFormatter(formatter)

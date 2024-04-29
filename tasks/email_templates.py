@@ -1,7 +1,8 @@
 from email.message import EmailMessage
-from pydantic import EmailStr
-from config.config import settings
 
+from pydantic import EmailStr
+
+from config.config import settings
 
 
 def success_created_user(username: str, email_to: EmailStr, token: str):
@@ -55,19 +56,22 @@ def forgot_password_email(email_to: EmailStr, token: str):
     return email
 
 
-def password_changed_email(email_to: EmailStr, username: str, new_password: str):
+def password_changed_email(
+    email_to: EmailStr, username: str, new_password: str
+):
     email = EmailMessage()
     email["Subject"] = "Пароль изменен"
     email["From"] = settings.SMTP_USER
     email["To"] = email_to
 
-    email.set_content(f"""
+    email.set_content(
+        f"""
         <h3>Ваш пароль был сброшен</h3>
         <b><p>Ваш логин: {username}</p></b>
         <b><p>Новый пароль: {new_password}</p></b>
         <b><p>Теперь вы можете войти в систему с новым паролем и изменить его если захотите</p></b>
-    """, 
-    subtype='html',
+    """,
+        subtype="html",
     )
 
     return email

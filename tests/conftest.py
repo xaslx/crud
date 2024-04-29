@@ -1,6 +1,5 @@
 import asyncio
 import json
-from datetime import datetime
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -28,11 +27,6 @@ async def prepare_database():
     users = open_mock("users")
     posts = open_mock("posts")
 
-    for user in users:
-        user["date_of_birthday"] = datetime.strptime(
-            user["date_of_birthday"], "%Y-%m-%d"
-        )
-
     async with async_session_maker() as session:
         for Model, values in [(User, users), (Post, posts)]:
             query = insert(Model).values(values)
@@ -59,11 +53,12 @@ async def ac():
 @pytest.fixture(scope="session")
 async def authenticated_ac():
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
+        transport=ASGITransport(app=app), base_url="http://127.0.0.1"
     ) as ac:
         await ac.post(
-            "/auth/login", json={"username": "maks4on", "password": "string"}
+            "/auth/login", json={"username": "maksss", "password": "string"}
         )
+        print(ac.cookies)
         assert ac.cookies["user_access_token"]
         yield ac
 

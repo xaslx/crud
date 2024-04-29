@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from jose import jwt
 
 from config.config import settings
-
 from models.user_models import User
 
 

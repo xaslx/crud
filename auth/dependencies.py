@@ -1,8 +1,11 @@
+import inspect
+
 from fastapi import Depends, Request
 from jose import ExpiredSignatureError, JWTError, jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.config import settings
-from dao.users_dao import UsersDAO
+from database.database import get_async_session
 from exceptions import (
     IncorrectTokenException,
     TokenAbsentException,
@@ -11,6 +14,7 @@ from exceptions import (
     UserIsNotPresentException,
 )
 from models.user_models import User
+from repository.users_repository import UsersRepository
 
 
 def get_token(request: Request):
@@ -20,7 +24,14 @@ def get_token(request: Request):
     return token
 
 
-async def get_current_user(token: str = Depends(get_token)):
+async def get_current_user(
+    async_db: AsyncSession = Depends(get_async_session),
+    token: str = Depends(get_token),
+) -> User:
+
+    frm = inspect.stack()[1]
+    mod = inspect.getmodule(frm[0])
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, settings.ALGORITHM)
     except ExpiredSignatureError:
@@ -30,7 +41,14 @@ async def get_current_user(token: str = Depends(get_token)):
     user_id: str = payload.get("sub")
     if not user_id:
         raise UserIsNotPresentException
-    user = await UsersDAO.find_one_or_none(id=int(user_id))
+    if mod.__name__ == "admin.admin":
+        user = await UsersRepository.find_one_or_none_for_admin(
+            id=int(user_id)
+        )
+    else:
+        user = await UsersRepository.find_one_or_none(
+            id=int(user_id), session=async_db
+        )
     if not user:
         raise UserIsNotPresentException
     return user

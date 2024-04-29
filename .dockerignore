@@ -1,8 +1,3 @@
-__pycache__
-.pytest_cache
-.vscode
-.env
-.env-non-dev
-celery.txt
-google_acc.txt
+.git
 venv
+google_acc.txt

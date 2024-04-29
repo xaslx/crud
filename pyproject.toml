@@ -12,8 +12,7 @@ ensure_newline_before_comments = true
 line_length = 79
 
 [tool.autoflake]
-check_diff = true
-imports = ['sqlalchemy', '.', 'app']
+imports = ['sqlalchemy', '.']
 
 [tool.pyright]
 include = ['']

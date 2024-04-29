@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 
 class BaseException(HTTPException):
     status_code = 500
-    detail = ''
+    detail = ""
 
     def __init__(self):
         super().__init__(status_code=self.status_code, detail=self.detail)
@@ -12,82 +12,100 @@ class BaseException(HTTPException):
 # Пользователи
 class UserAlreadyExistsException(BaseException):
     status_code = status.HTTP_409_CONFLICT
-    detail = 'Пользователь уже существует'
+    detail = "Пользователь уже существует"
+
 
 class IncorrectEmailOrPasswordException(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Неверный email или пароль'
+    detail = "Неверный email или пароль"
+
 
 class IncorrectEmailOrPasswordExceptionNotEn(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Email или пароль должны быть на английском'
+    detail = "Email или пароль должны быть на английском"
+
 
 class UserNotFound(BaseException):
     status_code = status.HTTP_409_CONFLICT
-    detail = 'Пользователь не найден'
+    detail = "Пользователь не найден"
+
 
 class UserIsNotPresentException(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
 
+
 class UserIsNotAdmin(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Доступ запрещен'
+    detail = "Доступ запрещен"
+
 
 class UserAlreadyUnBan(BaseException):
     status_code = status.HTTP_409_CONFLICT
-    detail = 'Пользователь уже разблокирован'
+    detail = "Пользователь уже разблокирован"
+
 
 class UserAlreadyBan(BaseException):
     status_code = status.HTTP_409_CONFLICT
-    detail = 'Пользователь уже заблокирован'
+    detail = "Пользователь уже заблокирован"
+
 
 class UnverifiedUser(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Вы не верифицированный пользователь'
+    detail = "Вы не верифицированный пользователь"
+
+
+class YourAccountIsBlocked(BaseException):
+    status_code = status.HTTP_403_FORBIDDEN
+    detail = "Ваш аккаунт заблокирован"
+
 
 class FileTooLarge(BaseException):
     status_code = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
-    detail = 'Файл не должен привышать 5мб.'
-
-class NotAccess(BaseException):
-    status_code = status.HTTP_409_CONFLICT
-    detail = 'Не достаточно прав'
+    detail = "Файл не должен привышать 5мб."
 
 
 # JWT token
 class TokenExpiredException(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Токен истёк'
+    detail = "Токен истёк"
+
 
 class TokenAbsentException(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Токен отсутствует'
+    detail = "Токен отсутствует"
+
 
 class IncorrectTokenException(BaseException):
     status_code = status.HTTP_401_UNAUTHORIZED
-    detail = 'Неверный формат токена'
+    detail = "Неверный формат токена"
 
-# Артикли
+
+# Посты
 class PostNotFound(BaseException):
     status_code = status.HTTP_404_NOT_FOUND
-    detail = 'Пост не найден'
+    detail = "Пост не найден"
+
 
 class NotAccess(BaseException):
     status_code = status.HTTP_403_FORBIDDEN
-    detail = 'Недостаточно прав'
+    detail = "Недостаточно прав"
 
-class PostNotDeleted(BaseException):
-    status_code = status.HTTP_403_FORBIDDEN
-    detail = 'Этот пост не принадлежит вам, вы не можете его удалить'
 
 class PostYetExisting(BaseException):
     status_code = status.HTTP_406_NOT_ACCEPTABLE
-    detail = 'Невозможно удалить пользователя так как у него есть посты'
+    detail = "Невозможно удалить пользователя так как у него есть посты"
+
 
 class IncorrectLink(BaseException):
     status_code = status.HTTP_409_CONFLICT
-    detail = 'Не действительная ссылка или время истекло'
+    detail = "Не действительная ссылка или время истекло"
+
 
 class IncorrectExtension(BaseException):
     status_code = status.HTTP_409_CONFLICT
-    detail = 'Неверное расширение файла'
+    detail = "Неверное расширение файла"
+
+
+class CommentNotFound(BaseException):
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Комментарий не найден"

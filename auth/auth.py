@@ -1,12 +1,15 @@
 from datetime import datetime, timedelta
 
+from fastapi import Depends
 from jose import jwt
 from passlib.context import CryptContext
 from pydantic import EmailStr
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.config import settings
-from dao.users_dao import UsersDAO
+from database.database import get_async_session
 from exceptions import IncorrectEmailOrPasswordException
+from repository.users_repository import UsersRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,15 +32,21 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-async def authenticate_user(username: str, password: str):
-    user = await UsersDAO.find_one_or_none(username=username)
+async def authenticate_user(
+    username: str,
+    password: str,
+    async_db: AsyncSession = Depends(get_async_session),
+):
+    user = await UsersRepository.find_one_or_none(
+        username=username, session=async_db
+    )
     if not (user and verify_password(password, user.hashed_password)):
         raise IncorrectEmailOrPasswordException
     return user
 
 
 async def authenticate_user_by_email(email: EmailStr, password: str):
-    user_email = await UsersDAO.find_one_or_none(email=email)
+    user_email = await UsersRepository.find_one_or_none_for_admin(email=email)
     if not (
         user_email and verify_password(password, user_email.hashed_password)
     ):
