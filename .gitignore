@@ -5,3 +5,6 @@ logfile.log
 .env
 .env-non-dev
 .pytest_cache
+__pycache__
+.vscode
+celery.txt

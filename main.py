@@ -81,13 +81,6 @@ app.include_router(router_prometheus)
 
 
 
-instrumentator = Instrumentator(
-    should_group_status_codes=False,
-    excluded_handlers=[".*admin.*", "/metrics"],
-)
-instrumentator.instrument(app).expose(app)
-
-
 origins = [
     "http://localhost:8000",
     "http://127.0.0.1:8000"
@@ -113,3 +106,9 @@ async def add_proccess_time_header(request: Request, call_next):
         extra={"proccess_time": round(proccess_time, 3)},
     )
     return response
+
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    excluded_handlers=[".*admin.*", "/metrics"],
+)
+instrumentator.instrument(app).expose(app)
